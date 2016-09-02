@@ -9,6 +9,7 @@
 
     <script>
         var lastHandType = {};
+        var thirdSoundActive = false;
         var controllerOptions = { enableGestures: true };
         var leftHandTrack = {id: "32lmL4vQAAotg6MrJnhlQZ"};
         var rightHandTrack = {id: "68fNJRbShQzSWW2FchoIy6"};
@@ -65,7 +66,7 @@
             function (frame) {
                 //console.log("Frame hands len", frame.hands.length);
 
-               handFound = {};
+               var handFound = {};
 
                for(var i=0;i<frame.hands.length;i++) {
 
@@ -79,15 +80,21 @@
 
 
 
-                    var yPosition = Math.min(frame.hands[i].palmPosition[1]/450,1);
+                    var yPosition = Math.max(0,Math.min(frame.hands[i].palmPosition[1]/450,1));
                     //console.log("yPos", yPosition);
                     //console.log("palmPos", frame.hands[i].palmPosition[1]);
 
                     palmNormal = frame.hands[i].palmNormal[0];
+                    var handHorizontal = Math.abs(palmNormal) > 0.7;
+                    console.log("Handhorizontal", handHorizontal);
+                    console.log("thirdSoundActive", thirdSoundActive);
 
-                    if(Math.abs(palmNormal) > 0.7) {
+                    if(handHorizontal && !thirdSoundActive) {
                         console.log("Third sound", thirdSound);
                         playBrowserSound(thirdSound);
+                        thirdSoundActive = true;
+                    } else if (!handHorizontal) {
+                         thirdSoundActive = false;
                     }
                     console.log("palmNormal", frame.hands[i].palmNormal[0]);
 
