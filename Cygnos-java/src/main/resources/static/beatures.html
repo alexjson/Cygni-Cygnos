@@ -8,19 +8,42 @@
     <script src="wad.min.js"></script>
 
     <script>
-        var lastHandType = {};
+        var lastHandType;
         var controllerOptions = { enableGestures: true };
         var leftHandTrack = {id: "32lmL4vQAAotg6MrJnhlQZ"};
         var rightHandTrack = {id: "68fNJRbShQzSWW2FchoIy6"};
         var leftHandSound = new Audio("3727.mp3");
         var rightHandSound = new Audio("looperman-l-1753301-0092078-vocalaccident-vocal-beatbox-aha-a.wav");
-        var thirdSound = new Audio("beatures.m4a");
+
 
         function stopSound() {
             console.log("stopSound");
             stopSpotifySound();
         }
 
+        function playSynth(hand) {
+            console.log("Playing wad, hand", hand);
+
+                var env = {
+                    attack : .08,
+                    decay : .4,
+                    sustain : Math.min(hand.palmPosition[1]/200,1.0),
+                    hold : .4,
+                    release : .1
+                };
+
+            var bass = new Wad({
+                source : 'sine',
+                env: env
+            });
+
+            console.log("env", JSON.stringify(env));
+
+            bass.play();
+   //         var saw = new Wad({source : 'sine'});
+   //         saw.play();
+             console.log("Played wad");
+        }
 
         function stopSpotifySound() {
             $.ajax({
@@ -42,7 +65,6 @@
         function playBrowserSound(audio) {
             console.log("Play audio", audio);
             audio.play();
-
         }
 
         function playSound(hand, handType) {
@@ -60,54 +82,28 @@
                 //playSynth(hand);
             }
         }
-
         Leap.loop(controllerOptions,
             function (frame) {
                 //console.log("Frame hands len", frame.hands.length);
+                if (frame.hands.length === 1) {
 
-               handFound = {};
 
-               for(var i=0;i<frame.hands.length;i++) {
+                    //console.log("Hand type", frame.hands[0].type);
 
-                    var handType = frame.hands[i].type;
+                    if(frame.hands[0].type !== lastHandType) {
 
-                    handFound[handType] = true;
-
-                    if(handType !== lastHandType[handType]) {
-                        playSound(frame.hands[i], handType);
+                        playSound(frame.hands[0], frame.hands[0].type);
                     }
 
+                    lastHandType = frame.hands[0].type;
+
+                } else {
+                    lastHandType && stopSound();
+                    lastHandType = undefined;
+                }
 
 
-                    var yPosition = Math.min(frame.hands[i].palmPosition[1]/450,1);
-                    //console.log("yPos", yPosition);
-                    //console.log("palmPos", frame.hands[i].palmPosition[1]);
-
-                    palmNormal = frame.hands[i].palmNormal[0];
-
-                    if(Math.abs(palmNormal) > 0.7) {
-                        console.log("Third sound", thirdSound);
-                        playBrowserSound(thirdSound);
-                    }
-                    console.log("palmNormal", frame.hands[i].palmNormal[0]);
-
-                    if(frame.hands[i].type === "left") {
-                        leftHandSound.volume = yPosition;
-                    } else {
-                        rightHandSound.volume = yPosition;
-                    }
-               }
-
-               if(handFound['left'] === undefined) {
-                    lastHandType['left'] = undefined;
-               }
-
-
-               if(handFound['right'] === undefined) {
-                    lastHandType['right'] = undefined;
-               }
-
-           });
+            });
     </script>
 
 </head>
